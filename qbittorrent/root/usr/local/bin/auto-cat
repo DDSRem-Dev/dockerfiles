@@ -18,7 +18,7 @@ base_fun() {
 
 gen_tracker() {
     local torrent_hash="$1"
-    local tracker_url=$($cmd_curl "${api_url_base}/torrents/trackers?hash=${torrent_hash}" | jq -r .[].url | grep -m1 -i "http" | awk -F "://|/" '{print $2}')
+    local tracker_url=$(cmd_curl "${api_url_base}/torrents/trackers?hash=${torrent_hash}" | jq -r .[].url | grep -m1 -i "http" | awk -F "://|/" '{print $2}')
     local tracker=$(echo "$tracker_url" | awk -F "." '{print $((NF - 1))}')
     [[ $tracker == edu ]] && tracker=$(echo "$tracker_url" | awk -F "." '{print $((NF - 2))}')
     echo "$tracker"
@@ -27,23 +27,23 @@ gen_tracker() {
 category() {
     local torrent_hash="$1"
     local tracker=$(gen_tracker "$torrent_hash")
-    local current_category=$($cmd_curl "${api_url_base}/torrents/info?hashes=${torrent_hash}" | jq -r .[].category | sed "s# #%20#g")
+    local current_category=$(cmd_curl "${api_url_base}/torrents/info?hashes=${torrent_hash}" | jq -r .[].category | sed "s# #%20#g")
     if [[ -z $(cat $categories_json | jq -r 'keys'[] | grep -x "$tracker") ]]; then
-        $cmd_curl_post -d "category=$tracker" "${api_url_base}/torrents/createCategory" &>/dev/null
+        cmd_curl_post -d "category=$tracker" "${api_url_base}/torrents/createCategory" &>/dev/null
     fi
     if [[ $current_category != $tracker ]]; then
-        $cmd_curl_post -d "hashes=${torrent_hash}&category=${tracker}" "${api_url_base}/torrents/setCategory"
+        cmd_curl_post -d "hashes=${torrent_hash}&category=${tracker}" "${api_url_base}/torrents/setCategory"
     fi
 }
 
 tag() {
     local torrent_hash="$1"
     local tracker=$(gen_tracker "$torrent_hash")
-    $cmd_curl_post -d "hashes=${torrent_hash}&tags=${tracker}" ${api_url_base}/torrents/addTags
+    cmd_curl_post -d "hashes=${torrent_hash}&tags=${tracker}" ${api_url_base}/torrents/addTags
 }
 
 cat_all() {
-    local hashes=( $($cmd_curl "${api_url_base}/torrents/info${filter}" | jq -r .[].hash) )
+    local hashes=( $(cmd_curl "${api_url_base}/torrents/info${filter}" | jq -r .[].hash) )
     for hash in "${hashes[@]}"; do
         eval $CATEGORY_OR_TAG "$hash"
     done

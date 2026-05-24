@@ -4,19 +4,19 @@ tag_name="TrackerError"
 
 ## 处理所有torrent
 . /usr/local/bin/share
-hashes=( $($cmd_curl ${api_url_base}/torrents/info | jq -r .[].hash) )
+hashes=( $(cmd_curl ${api_url_base}/torrents/info | jq -r .[].hash) )
 tracker_error_count=0
 add_hashes=""
-$cmd_curl_post -d "hashes=all&tags=${tag_name}" ${api_url_base}/torrents/removeTags
+cmd_curl_post -d "hashes=all&tags=${tag_name}" ${api_url_base}/torrents/removeTags
 for hash in "${hashes[@]}"; do
-    if [[ -z $($cmd_curl "${api_url_base}/torrents/trackers?hash=${hash}" | jq '.[] | select(.tier >= 0)' | jq -r '.status | select(. <= 3)') ]]; then
+    if [[ -z $(cmd_curl "${api_url_base}/torrents/trackers?hash=${hash}" | jq '.[] | select(.tier >= 0)' | jq -r '.status | select(. <= 3)') ]]; then
         add_hashes="${add_hashes}|${hash}"
     fi
 done
 
 ## 调整标签
 if [[ -n $add_hashes ]]; then
-    echo "hashes=${add_hashes/|/}&tags=${tag_name}" | $cmd_curl_post -d @- ${api_url_base}/torrents/addTags
+    echo "hashes=${add_hashes/|/}&tags=${tag_name}" | cmd_curl_post -d @- ${api_url_base}/torrents/addTags
     
     ## 发送通知
     TRACKER_ERROR_COUNT_MIN=${TRACKER_ERROR_COUNT_MIN:-3}

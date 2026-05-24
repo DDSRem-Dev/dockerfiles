@@ -4,10 +4,10 @@ change_tracker() {
     local hash=$1
     local orig_url=$2
     local new_url=$3
-    local torrent_name=$($cmd_curl "${api_url_base}/torrents/info?hashes=${hash}" | jq -r .[0].name)
+    local torrent_name=$(cmd_curl "${api_url_base}/torrents/info?hashes=${hash}" | jq -r .[0].name)
 
     echo "hash: ${hash}, torrent_name: ${torrent_name}"
-    $cmd_curl_post $api_url_base/torrents/editTracker -d "hash=${hash}&origUrl=${orig_url}&newUrl=${new_url}"
+    cmd_curl_post $api_url_base/torrents/editTracker -d "hash=${hash}&origUrl=${orig_url}&newUrl=${new_url}"
 }
 
 handle_all_match_torrents() {
@@ -15,11 +15,11 @@ handle_all_match_torrents() {
 
     . /usr/local/bin/share
     echo -e "\n检测种子清单...\n"
-    hashes=( $($cmd_curl ${api_url_base}/torrents/info | jq -r .[].hash) )
+    hashes=( $(cmd_curl ${api_url_base}/torrents/info | jq -r .[].hash) )
     echo -e "开始替换...\n\n搜索过程可能较慢，请等待程序运行完成...\n\n有以下种子匹配所提供的信息，并完成替换：\n"
     local change_count=0
     for hash in ${hashes[@]}; do
-        trackers_url=( $($cmd_curl $api_url_base/torrents/trackers?hash=$hash | jq -r .[].url | sed "s# #_#g") )
+        trackers_url=( $(cmd_curl $api_url_base/torrents/trackers?hash=$hash | jq -r .[].url | sed "s# #_#g") )
         for ((n = $((${#trackers_url[*]} - 1)); n >= 0; n--)); do
             if [[ $method == exact && ${trackers_url[n]} == ${tracker_orig_url} ]]; then
                 change_tracker "$hash" "${tracker_orig_url//&/%26}" "${tracker_new_url//&/%26}"
@@ -42,8 +42,8 @@ usage() {
     echo "  命令中直接带上参数，此用法支持由cron定时任务自动运行"
     echo "  mode允许的值为：1或2，1指精确匹配，匹配整个tracker才进行替换；2指模糊匹配，只要tracker中含有所提供的字符，就进行替换，将tracker中这一部分字符替换为指定字符，其余字符不变"
     echo "  当mode为1时，-o后面为原来的完整tracker地址，-n后面为修改后的完整tracker地址；当mode为2时，-o后面为替换前tracker地址中的一段字符串，-n后面为替换后的字符串，请务必确保输入的字符串满足预期！！！"
-    echo "  示例：change-tracker -m 1 -o http://tracker.example.com/passkey=qwertyuiopasdfghjkll -n https://tracker.example.com/passkey=asdfghjkllqwertyuiop"
-    echo "  示例：change-tracker -m 2 -o http:// -n https://"
+    echo "  示例：change-tracker -m 1 -o \"http://tracker.example.com/passkey=qwertyuiopasdfghjkll\" -n \"https://tracker.example.com/passkey=asdfghjkllqwertyuiop\""
+    echo "  示例：change-tracker -m 2 -o \"http://\" -n \"https://\""
     echo 
     echo "用法2：change-tracker"
     echo "  命令中不带参数，这种用法由用户随后根据提示主动输入模式选择和要修改的tracker信息"
@@ -83,7 +83,7 @@ main_2() {
     echo -e "1. 精确匹配：匹配整个tracker才进行替换。\n"
     echo -e "2. 模糊匹配：只要tracker中含有所提供的字符，就进行替换，只将tracker中这一部分字符替换为指定字符，其余字符不变。\n"
     read -p "请选择匹配模式 [1/2]：" match_method
-    echo
+    echo$cmd_curl
     case $match_method in
         1)
             read -p "请输入要替换的tracker：" tracker_orig_url

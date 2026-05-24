@@ -41,7 +41,7 @@ byte_du_total=0
 
 . /usr/local/bin/share
 
-torrents_info=$($cmd_curl ${api_url_base}/torrents/info)
+torrents_info=$(cmd_curl "${api_url_base}/torrents/info")
 echo "$torrents_info" | jq -r .[].save_path | sed -e "s|^|\/|" -e "s|$|\/|"  > $tmppaste1
 echo "$torrents_info" | jq -r .[].size > $tmppaste2
 paste -d ":" $tmppaste1 $tmppaste2 > $tmppaste3

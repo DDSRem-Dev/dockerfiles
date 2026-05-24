@@ -2,9 +2,9 @@
 
 send_notify() {
     local hash="$1"
-    local torrent_info=$($cmd_curl "${api_url_base}/torrents/info?hashes=${hash}" | jq .[0])
-    local torrent_properties=$($cmd_curl "${api_url_base}/torrents/properties?hash=${hash}")
-    local torrent_files=$($cmd_curl "${api_url_base}/torrents/files?hash=${hash}")
+    local torrent_info=$(cmd_curl "${api_url_base}/torrents/info?hashes=${hash}" | jq .[0])
+    local torrent_properties=$(cmd_curl "${api_url_base}/torrents/properties?hash=${hash}")
+    local torrent_files=$(cmd_curl "${api_url_base}/torrents/files?hash=${hash}")
 
     local hostname=$(cat /etc/hostname)
     local torrent_name=$(echo "$torrent_info" | jq -r .name)

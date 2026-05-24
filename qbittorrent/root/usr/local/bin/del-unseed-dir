@@ -35,7 +35,7 @@ done <<< $(echo "$detect_path")
 ## 检出qbittorrent的content_path
 echo -e "开始检测qbittorrent客户端中的种子保存路径，可能比较耗时，请耐心等待...\n"
 sleep 1
-torrents_info=$($cmd_curl ${api_url_base}/torrents/info)
+torrents_info=$(cmd_curl ${api_url_base}/torrents/info)
 torrents_sum=( $(echo $torrents_info | jq '.|length') )
 echo "$torrents_info" | jq -r .[].content_path | sed "s|\(.*\)|\1\/|" > $list_content_path
 

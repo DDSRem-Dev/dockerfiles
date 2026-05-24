@@ -11,7 +11,7 @@ urlencode() {
 }
 
 get_qb_url() {
-    local is_ssl=$(grep -i "WebUI\\\HTTPS\\\Enabled=" /data/config/qBittorrent.conf | awk -F "=" '{print $2}')
+    local is_ssl=$(awk -F "=" '/^WebUI\\HTTPS\\Enabled=/{print $2}' /data/config/qBittorrent.conf)
     local url_prefix
 
     if [[ $is_ssl == true ]]; then
@@ -24,22 +24,23 @@ get_qb_url() {
     echo "$qb_url"
 }
 
-get_qb_ck() {
-    local QB_PASSWORD=$(echo -en $QB_PASSWORD | urlencode)
-    local info=$(curl -iksS -H "Referer: $qb_url" -d "username=${QB_USERNAME}&password=${QB_PASSWORD}" $api_url_base/auth/login)
-    local qb_cookie=$(echo "$info" | awk '/set-cookie/{print $2}')
-    if [[ -n $qb_cookie ]]; then
-        echo $qb_cookie
+get_qb_api_key() {
+    local apikey=$(awk -F "=" '/^WebUI\\APIKey=/ {print $2}' /data/config/qBittorrent.conf)
+    if [[ -n $apikey ]]; then
+        echo "$apikey"
+    else
+        echo "没有在 qBittorrent 中设置 API Key，请先设置..." >&2
+        exit 1
     fi
 }
 
-if [[ $QB_USERNAME == admin && $QB_PASSWORD == adminadmin ]]; then
-    echo "环境变量 QB_USERNAME 和 QB_PASSWORD 为默认值，无法使用本脚本，请修改这两项环境变量为非默认值后再试。"
-    echo "Environmental variable QB_USERNAME and QB_PASSWORD is the default value and cannot be used in this script. Please modify these two environment variables to non default values and try again."
-    exit 1
-fi
+cmd_curl() {
+    curl -sk -H "Authorization: Bearer $(get_qb_api_key)" "$@"
+}
+
+cmd_curl_post() {
+    curl -sk -X POST -H "Authorization: Bearer $(get_qb_api_key)" "$@"
+}
 
 qb_url=$(get_qb_url)
 api_url_base="$qb_url/api/v2"
-cmd_curl="curl -sk -b $(get_qb_ck)"
-cmd_curl_post="$cmd_curl -X POST"
