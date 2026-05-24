@@ -7,7 +7,7 @@ change_tracker() {
     local torrent_name=$(cmd_curl "${api_url_base}/torrents/info?hashes=${hash}" | jq -r .[0].name)
 
     echo "hash: ${hash}, torrent_name: ${torrent_name}"
-    cmd_curl_post $api_url_base/torrents/editTracker -d "hash=${hash}&origUrl=${orig_url}&newUrl=${new_url}"
+    cmd_curl_post $api_url_base/torrents/editTracker -d "hash=${hash}&url=${orig_url}&newUrl=${new_url}"
 }
 
 handle_all_match_torrents() {
