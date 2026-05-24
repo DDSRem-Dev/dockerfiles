@@ -9,7 +9,7 @@ tracker_error_count=0
 add_hashes=""
 cmd_curl_post -d "hashes=all&tags=${tag_name}" ${api_url_base}/torrents/removeTags
 for hash in "${hashes[@]}"; do
-    if [[ -z $(cmd_curl "${api_url_base}/torrents/trackers?hash=${hash}" | jq '.[] | select(.tier >= 0)' | jq -r '.status | select(. <= 3)') ]]; then
+    if [[ -z $(cmd_curl "${api_url_base}/torrents/trackers?hash=${hash}" | jq '.[] | select(.tier >= 0 and .status != 5)') ]]; then
         add_hashes="${add_hashes}|${hash}"
     fi
 done
@@ -25,4 +25,3 @@ if [[ -n $add_hashes ]]; then
         notify "tracker出错数量超过阈值" "主机：${HOSTNAME}\n时间：$(date +'%Y-%m-%d %H:%M:%S')\n注意：当前有${tracker_error_count}个种子tracker出错，建议检查一下\n说明：您收到本通知是因为您设置了通知阈值TRACKER_ERROR_COUNT_MIN=${TRACKER_ERROR_COUNT_MIN}(默认值:3)"
     fi
 fi
-
