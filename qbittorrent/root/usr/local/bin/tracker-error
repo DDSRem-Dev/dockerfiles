@@ -9,7 +9,7 @@ add_hashes=($(cmd_curl "${api_url_base}/sync/maindata" | jq -r '.torrents | to_e
 
 ## 调整标签
 if [[ -n ${add_hashes[@]} ]]; then
-    echo "hashes=$(echo "${add_hashes[@]}" | perl -pe 's| |\||g')&tags=${tag_name}" | cmd_curl_post -d @- ${api_url_base}/torrents/addTags
+    echo "hashes=$(echo "${add_hashes[@]}" | tr ' ' '|')&tags=${tag_name}" | cmd_curl_post -d @- ${api_url_base}/torrents/addTags
 
     ## 发送通知
     TRACKER_ERROR_COUNT_MIN=${TRACKER_ERROR_COUNT_MIN:-3}
